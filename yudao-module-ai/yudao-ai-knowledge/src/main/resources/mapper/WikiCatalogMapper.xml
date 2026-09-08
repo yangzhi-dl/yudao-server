@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.iocoder.yudao.module.ai.knowledge.wiki.dal.mysql.WikiCatalogMapper">
+
+    <update id="deleteByWikiId">
+        update ai_wiki_catalog set deleted = #{deleted}, updater = #{updater}, update_time = #{updateTime} where wiki_id = #{wikiId}
+    </update>
+
+    <update id="updateWikiCatalog">
+        update ai_wiki_catalog
+        <set>
+            title = #{title},
+            level = #{level},
+            parent_id = #{parentId},
+            sort = #{sort},
+            document_id = #{documentId},
+            is_embedding = #{isEmbedding},
+            deleted = #{deleted},
+            updater = #{updater},
+            update_time = #{updateTime}
+        </set>
+        where id = #{id} and wiki_id = #{wikiId}
+    </update>
+
+    <update id="deleteWikiCatalogByIds">
+        update ai_wiki_catalog
+        set deleted = #{deleted}, updater = #{updater}, update_time = #{updateTime}
+        where wiki_id = #{wikiId} and id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="selectFirstDocumentId">
+        select * from ai_wiki_catalog
+        where wiki_id = #{wikiId} and level = 2 and document_id IS NOT NULL
+        order by id limit 1
+    </select>
+
+    <select id="selectFirstFilterDocumentId">
+        SELECT * FROM ai_wiki_catalog
+        WHERE wiki_id = #{wikiId} AND level = 2 AND document_id IS NOT NULL
+        <if test="restrictedDocumentIds != null and restrictedDocumentIds.size() > 0">
+            AND document_id NOT IN
+            <foreach collection='restrictedDocumentIds' item='restrictedDocumentId' open='(' separator=',' close=')'>
+                #{restrictedDocumentId}
+            </foreach>
+        </if>
+        ORDER BY id LIMIT 1
+    </select>
+
+    <select id="selectByWikiId">
+        select * from ai_wiki_catalog where wiki_id = #{wikiId} and document_id is null and deleted = 0
+    </select>
+
+    <select id="selectByWikiDocumentId">
+        select * from ai_wiki_catalog where wiki_id = #{wikiId} and deleted = 0 and document_id is not null;
+    </select>
+
+    <select id="selectDirectoriesByWikiId">
+        select * from ai_wiki_catalog
+        where wiki_id = #{wikiId}
+        and deleted = 0
+        and document_id IS NULL
+    </select>
+
+    <select id="selectDocumentsByParentId">
+        select * from ai_wiki_catalog
+        where wiki_id = #{wikiId}
+        and deleted = 0
+        and parent_id = #{parentId}
+        and document_id IS NOT NULL
+        <if test="restrictedDocumentIds != null and restrictedDocumentIds.size() > 0">
+            and document_id not in
+            <foreach collection='restrictedDocumentIds' item='restrictedDocumentId' open='(' separator=',' close=')'>
+                #{restrictedDocumentId}
+            </foreach>
+        </if>
+        order by sort asc
+    </select>
+
+    <select id="countDocumentsByParentId" resultType="long">
+        select count(*) from ai_wiki_catalog
+        where wiki_id = #{wikiId}
+        and deleted = 0
+        and parent_id = #{parentId}
+        and document_id IS NOT NULL
+        <if test="restrictedDocumentIds != null and restrictedDocumentIds.size() > 0">
+            and document_id not in
+            <foreach collection='restrictedDocumentIds' item='restrictedDocumentId' open='(' separator=',' close=')'>
+                #{restrictedDocumentId}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="selectDocumentsByParentIdPage">
+        select * from ai_wiki_catalog
+        where wiki_id = #{wikiId}
+        and deleted = 0
+        and parent_id = #{parentId}
+        and document_id IS NOT NULL
+        <if test="restrictedDocumentIds != null and restrictedDocumentIds.size() > 0">
+            and document_id not in
+            <foreach collection='restrictedDocumentIds' item='restrictedDocumentId' open='(' separator=',' close=')'>
+                #{restrictedDocumentId}
+            </foreach>
+        </if>
+        order by sort asc
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="selectDocumentsByParentIds">
+        select * from ai_wiki_catalog
+        where wiki_id = #{wikiId}
+        and deleted = 0
+        and document_id IS NOT NULL
+        and parent_id in
+        <foreach collection="parentIds" item="parentId" open="(" separator="," close=")">
+            #{parentId}
+        </foreach>
+        <if test="restrictedDocumentIds != null and restrictedDocumentIds.size() > 0">
+            and document_id not in
+            <foreach collection='restrictedDocumentIds' item='restrictedDocumentId' open='(' separator=',' close=')'>
+                #{restrictedDocumentId}
+            </foreach>
+        </if>
+        order by sort asc
+    </select>
+
+    <update id="removeDocumentFromCatalog">
+        update ai_wiki_catalog set deleted = 1
+        where wiki_id = #{wikiId} and document_id = #{documentId} and deleted = 0
+    </update>
+
+    <select id="countEmbedding">
+        select COUNT(CASE WHEN is_embedding = 1 THEN 1 END) AS count,
+               COUNT(*) AS total from ai_wiki_catalog
+               where wiki_id = #{wikiId} and level = 2 and deleted = 0
+               and document_id is not null and is_embedding is not null
+    </select>
+
+    <update id="updateIsEmbedding">
+        UPDATE ai_wiki_catalog
+        SET is_embedding = #{isEmbedding}
+        WHERE id IN
+        <foreach collection='ids' item='id' open='(' separator=',' close=')'>
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="selectWikiCatalogByDocumentId">
+        SELECT * FROM ai_wiki_catalog WHERE document_id = #{documentId} AND deleted = 0 LIMIT 1
+    </select>
+
+</mapper>

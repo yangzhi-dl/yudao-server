@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cn.iocoder.boot</groupId>
+        <artifactId>yudao-ai-dependencies</artifactId>
+        <version>${revision}</version>
+        <relativePath>../yudao-ai-dependencies/pom.xml</relativePath>
+    </parent>
+
+    <artifactId>yudao-ai-data</artifactId>
+
+    <properties>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- 数据采集与治理复用 AI 公共能力（文档转换、Markdown 统计、错误码等） -->
+        <dependency>
+            <groupId>cn.iocoder.boot</groupId>
+            <artifactId>yudao-ai-common</artifactId>
+            <version>${revision}</version>
+        </dependency>
+
+        <!-- 复用 AI 模型能力（AI 清洗、摘要等） -->
+        <dependency>
+            <groupId>cn.iocoder.boot</groupId>
+            <artifactId>yudao-ai-core</artifactId>
+            <version>${revision}</version>
+        </dependency>
+
+        <!-- 归档复用知识库文档与知识库服务 -->
+        <dependency>
+            <groupId>cn.iocoder.boot</groupId>
+            <artifactId>yudao-ai-knowledge</artifactId>
+            <version>${revision}</version>
+        </dependency>
+    </dependencies>
+
+</project>

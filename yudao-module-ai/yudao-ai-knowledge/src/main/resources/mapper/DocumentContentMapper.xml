@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.iocoder.yudao.module.ai.knowledge.document.dal.mysql.DocumentContentMapper">
+
+    <resultMap id="DocumentContentMap" type="cn.iocoder.yudao.module.ai.knowledge.document.dal.dataobject.DocumentContent">
+        <id property="id" column="id" />
+        <result property="documentId" column="document_id" />
+        <result property="content" column="content" />
+        <result property="chunkKeys" column="chunk_keys"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+        <result property="creator" column="creator" />
+        <result property="updater" column="updater" />
+    </resultMap>
+
+    <update id="clearDocumentChunkKeysByIds">
+        update ai_document_content set chunk_keys = "[]" WHERE document_id IN
+        <foreach collection="documentIds" item="documentId" separator="," open="(" close=")">
+            #{documentId}
+        </foreach>
+    </update>
+
+</mapper>

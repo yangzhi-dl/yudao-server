@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.iocoder.yudao.module.ai.core.chat.dal.mysql.AiAgentMapper">
+    <resultMap id="AgentResultMap" type="cn.iocoder.yudao.module.ai.core.chat.dal.dataobject.AiAgentDO">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="model_id" property="modelId"/>
+        <result column="cover" property="cover"/>
+        <result column="tag_ids" property="tagIds"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"
+                javaType="java.util.List"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="prompt" property="prompt"/>
+        <result column="tools" property="tools"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"
+                javaType="java.util.List"/>
+        <result column="settings" property="settings"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"
+                javaType="java.util.List"/>
+        <result column="skill_ids" property="skillIds"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"
+                javaType="java.util.List"/>
+        <result column="description" property="description"/>
+        <result column="creator" property="creator"/>
+        <result column="create_time" property="createTime"/>
+        <result column="updater" property="updater"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="tenant_id" property="tenantId"/>
+    </resultMap>
+
+    <resultMap id="SelectAgentVOResultMap" type="cn.iocoder.yudao.module.ai.core.chat.model.vo.SelectAgentVO">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="model_id" property="modelId"/>
+        <result column="description" property="description"/>
+        <result column="model_type" property="modelType"/>
+        <result column="tools" property="tools"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"
+                javaType="java.util.List"/>
+    </resultMap>
+
+    <insert id="insertAgent">
+        insert into ai_chat_agents(
+        id, `name`, `type`, model_id, cover, tag_ids, category_id, prompt, tools, `settings`, skill_ids, description,
+        creator, create_time, updater, update_time
+        )
+        values (
+        #{id}, #{name}, #{type}, #{modelId}, #{cover},
+        #{tagIds, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler},
+        #{categoryId}, #{prompt},
+        #{tools, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler},
+        #{settings, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler},
+        #{skillIds, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler},
+        #{description}, #{creator}, #{createTime}, #{updater}, #{updateTime}
+        )
+    </insert>
+
+    <select id="selectAgentList" resultMap="SelectAgentVOResultMap">
+        SELECT
+        a.*,
+        m.model_type
+        FROM ai_chat_agents a
+        LEFT JOIN ai_chat_models m ON a.model_id = m.id
+        WHERE a.deleted = 0 ORDER BY a.id DESC;
+    </select>
+
+    <select id="pageQuery" resultMap="AgentResultMap">
+        select * from ai_chat_agents
+        <where>
+            and deleted = 0
+            <if test="dto.name != null and dto.name != ''">
+                and name like concat('%', #{dto.name}, '%')
+            </if>
+            <if test="dto.ids != null and dto.ids.size() > 0">
+                and id in
+                <foreach collection="dto.ids" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+        ORDER BY id DESC
+    </select>
+
+    <update id="updateAgent">
+        update ai_chat_agents
+        <set>
+            <if test="name != null">`name` = #{name},</if>
+            <if test="type != null">`type` = #{type},</if>
+            <if test="cover != null">cover = #{cover},</if>
+            <if test="modelId != null">model_id = #{modelId},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="tagIds != null">
+                tag_ids = #{tagIds, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler},
+            </if>
+            <if test="prompt != null">prompt = #{prompt},</if>
+            <if test="tools != null">
+                tools = #{tools, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler},
+            </if>
+            <if test="settings != null">
+                `settings` = #{settings, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler},
+            </if>
+            <if test="skillIds != null">
+                skill_ids = #{skillIds, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler},
+            </if>
+            <if test="description != null">description = #{description},</if>
+            <if test="updater != null">updater = #{updater},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+</mapper>

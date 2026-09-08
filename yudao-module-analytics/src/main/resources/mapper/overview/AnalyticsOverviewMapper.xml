@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.iocoder.yudao.module.analytics.dal.mysql.overview.AnalyticsOverviewMapper">
+
+    <!-- 统计指定表的记录总数（忽略逻辑删除） -->
+    <select id="selectCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM ${tableName}
+        WHERE deleted = 0
+    </select>
+
+    <!-- 按租户统计指定表记录数 -->
+    <select id="selectCountGroupByTenant" resultType="java.util.Map">
+        SELECT tenant_id AS tenantId, COUNT(*) AS count
+        FROM ${tableName}
+        WHERE deleted = 0
+        GROUP BY tenant_id
+    </select>
+
+    <!-- 统计 token 使用总量 -->
+    <select id="selectTokenTotal" resultType="java.lang.Long">
+        SELECT IFNULL(SUM(total_tokens), 0)
+        FROM ai_chat_token
+        WHERE deleted = 0
+    </select>
+
+    <!-- 按租户统计 token 使用量 -->
+    <select id="selectTokenGroupByTenant" resultType="java.util.Map">
+        SELECT tenant_id AS tenantId, IFNULL(SUM(total_tokens), 0) AS token
+        FROM ai_chat_token
+        WHERE deleted = 0
+        GROUP BY tenant_id
+    </select>
+
+    <!-- 查询全部租户 -->
+    <select id="selectTenants" resultType="java.util.Map">
+        SELECT id AS tenantId, name AS tenantName
+        FROM system_tenant
+        WHERE deleted = 0
+        ORDER BY id
+    </select>
+
+</mapper>

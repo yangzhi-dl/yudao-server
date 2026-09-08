@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.iocoder.yudao.module.ai.knowledge.wiki.dal.mysql.WikiMapper">
+
+    <resultMap id="wikiResultMap" type="cn.iocoder.yudao.module.ai.knowledge.wiki.dal.dataobject.Wiki">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="cover" column="cover"/>
+        <result property="summary" column="summary"/>
+        <result property="deleted" column="deleted"/>
+        <result property="taskStatus" column="task_status"/>
+        <result property="weight" column="weight"/>
+        <result property="type" column="type"/>
+        <result property="settings" column="settings"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <!-- BaseTable 字段 -->
+        <result property="creator" column="creator"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updater" column="updater"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="tenantId" column="tenant_id"/>
+    </resultMap>
+
+    <select id="findWikiById" resultMap="wikiResultMap">
+        SELECT * FROM ai_wiki WHERE id = #{id} AND deleted = 0 LIMIT 1
+    </select>
+
+    <update id="deleteWikiByIds">
+        UPDATE ai_wiki
+        <set>
+            <if test="deleted != null">
+                deleted = #{deleted},
+            </if>
+            <if test="updater != null">
+                updater = #{updater},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        <where>
+            <if test="ids != null and ids.size() > 0">
+                AND id IN
+                <foreach collection="ids" item="id" separator="," open="(" close=")">
+                    #{id}
+                </foreach>
+            </if>
+            AND deleted = 0
+        </where>
+    </update>
+
+    <update id="updateWiki">
+        update ai_wiki
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="cover != null">cover = #{cover},</if>
+            <if test="summary != null">summary = #{summary},</if>
+            <if test="weight != null">weight = #{weight},</if>
+            <if test="type != null">`type` = #{type},</if>
+            <if test="settings != null">settings = #{settings, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler},</if>
+            <if test="deleted != null">deleted = #{deleted},</if>
+            <if test="updater != null">updater = #{updater},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+</mapper>

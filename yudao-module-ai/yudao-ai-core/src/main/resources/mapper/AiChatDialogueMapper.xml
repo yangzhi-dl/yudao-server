@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.iocoder.yudao.module.ai.core.chat.dal.mysql.AiChatDialogueMapper">
+
+    <resultMap id="ChatDialogueMap" type="cn.iocoder.yudao.module.ai.core.chat.model.entity.ChatDialogue">
+        <id property="id" column="id"/>
+        <result property="lastId" column="last_id"/>
+        <result property="sender" column="sender"/>
+        <result property="fileIds" column="file_ids"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result property="metadata" column="metadata"/>
+        <result property="isStar" column="is_star"/>
+    </resultMap>
+
+    <select id="pageQuery" resultMap="ChatDialogueMap">
+        select * from ai_chat_dialogue
+        <where>
+            <if test="entity.topicId != null">
+                topic_id = #{entity.topicId}
+            </if>
+            <if test="entity.isStar != null">
+                and is_star = #{entity.isStar}
+            </if>
+            <if test="entity.deleted != null">
+                and deleted = #{entity.deleted}
+            </if>
+            <if test="entity.creator != null">
+                and creator = #{entity.creator}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="getChatDialogueByTopicId" resultMap="ChatDialogueMap">
+        select * from ai_chat_dialogue
+        where deleted = 0 and topic_id = #{topicId} and creator = #{creator}
+        order by create_time desc
+    </select>
+
+    <select id="getHistoryByTopicId" resultMap="ChatDialogueMap">
+        SELECT * FROM ai_chat_dialogue
+        WHERE topic_id = #{topicId}
+          AND deleted = 0
+        ORDER BY create_time DESC
+        LIMIT #{size};
+    </select>
+
+    <!-- 窗口以 beforeId 消息为截止点：create_time 早于该消息，或同时间戳但 id 更小/相等 -->
+    <select id="getHistoryByTopicIdBefore" resultMap="ChatDialogueMap">
+        SELECT d.* FROM ai_chat_dialogue d
+        JOIN (SELECT create_time AS before_time FROM ai_chat_dialogue WHERE id = #{beforeId}) b
+          ON d.create_time &lt; b.before_time
+          OR (d.create_time = b.before_time AND d.id &lt;= #{beforeId})
+        WHERE d.topic_id = #{topicId}
+          AND d.deleted = 0
+        ORDER BY d.create_time DESC, d.id DESC
+        LIMIT #{size};
+    </select>
+
+    <!-- 获取每小时统计数据 -->
+    <select id="selectHourlyStats" resultType="cn.iocoder.yudao.module.ai.core.chat.model.entity.HourlyStats">
+        SELECT
+            HOUR(a.create_time) as hour,
+            COUNT(*) as call_count,
+            AVG(TIMESTAMPDIFF(MICROSECOND, u.create_time, a.create_time)) / 1000 as avg_response_time,
+            SUM(IF(a.feedback_status = 1 OR a.feedback_status = 0, 1, 0)) as positive_count,
+            SUM(IF(a.feedback_status = -1, 1, 0)) as negative_count,
+            SUM(IF(a.feedback_status IN (1, 0, -1), 1, 0)) as feedback_total,
+            SUM(IF(JSON_EXTRACT(a.metadata, '$.hasError') = true, 1, 0)) as error_count
+        FROM ai_chat_dialogue a
+                 INNER JOIN ai_chat_dialogue u ON u.id = a.last_id
+            AND u.sender = 'user'
+            AND u.deleted = 0
+        WHERE a.create_time >= #{startTime}
+          AND a.create_time &lt; #{endTime}
+          AND a.deleted = 0
+          AND a.sender = 'assistant'
+        GROUP BY HOUR(a.create_time)
+        ORDER BY hour
+    </select>
+
+    <!-- 获取昨日统计数据（用于环比计算） -->
+    <select id="selectHourlyStatsYesterday" resultType="cn.iocoder.yudao.module.ai.core.chat.model.entity.HourlyStats">
+        SELECT
+            HOUR(a.create_time) as hour,
+            COUNT(*) as call_count,
+            AVG(TIMESTAMPDIFF(MICROSECOND, u.create_time, a.create_time)) / 1000 as avg_response_time,
+            SUM(IF(a.feedback_status = 1 OR a.feedback_status = 0, 1, 0)) as positive_count,
+            SUM(IF(a.feedback_status = -1, 1, 0)) as negative_count,
+            SUM(IF(a.feedback_status IN (1, 0, -1), 1, 0)) as feedback_total,
+            SUM(IF(JSON_EXTRACT(a.metadata, '$.hasError') = true, 1, 0)) as error_count
+        FROM ai_chat_dialogue a
+                 INNER JOIN ai_chat_dialogue u ON u.id = a.last_id
+            AND u.sender = 'user'
+            AND u.deleted = 0
+        WHERE a.create_time >= #{startTime}
+          AND a.create_time &lt; #{endTime}
+          AND a.deleted = 0
+          AND a.sender = 'assistant'
+        GROUP BY HOUR(a.create_time)
+        ORDER BY hour
+    </select>
+
+</mapper>

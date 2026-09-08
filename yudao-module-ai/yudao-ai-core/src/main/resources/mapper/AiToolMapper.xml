@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.iocoder.yudao.module.ai.core.chat.dal.mysql.AiToolMapper">
+
+    <!-- 工具实体结果映射 -->
+    <resultMap id="ToolResultMap" type="cn.iocoder.yudao.module.ai.core.chat.dal.dataobject.ModelToolDO">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="rename" property="rename"/>
+        <result column="type" property="type"/>
+        <result column="description" property="description"/>
+        <result column="settings" property="settings"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result column="functions" property="functions"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"
+                javaType="java.util.List"/>
+        <result column="is_online" property="isOnline"/>
+        <result column="creator" property="creator"/>
+        <result column="create_time" property="createTime"/>
+        <result column="updater" property="updater"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 分页查询工具列表 -->
+    <select id="pageQuery" resultMap="ToolResultMap">
+        SELECT * FROM ai_chat_tools
+        <where>
+            AND deleted = 0
+            <if test="dto.rename != null and dto.rename != ''">
+                AND `rename` LIKE CONCAT('%', #{dto.rename}, '%')
+            </if>
+            <if test="dto.type != null">
+                AND `type` = #{dto.type}
+            </if>
+            <if test="dto.isOnline != null">
+                AND is_online = #{dto.isOnline}
+            </if>
+            <if test="dto.filterIds != null and dto.filterIds.size() > 0">
+                AND id IN
+                <foreach collection="dto.filterIds" item="id" separator="," open="(" close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据ID列表获取上线的工具 -->
+    <select id="getOnlineToolsByIds" resultMap="ToolResultMap">
+        SELECT * FROM ai_chat_tools
+        WHERE is_online = 1 AND deleted = 0
+        AND id IN
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 更新工具在线状态 -->
+    <update id="updateOnlineStatus">
+        UPDATE ai_chat_tools
+        SET is_online = #{isOnline}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 物理删除同名已删除记录（清理 deleted=1 旧副本，避免 uk_name_deleted 冲突） -->
+    <delete id="deleteOldDeletedByName">
+        DELETE FROM ai_chat_tools
+        WHERE deleted = 1
+        AND `name` IN
+        <foreach collection="names" item="name" separator="," open="(" close=")">
+            #{name}
+        </foreach>
+    </delete>
+
+</mapper>

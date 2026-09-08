@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.iocoder.yudao.module.ai.core.chat.dal.mysql.AiChatTokenMapper">
+
+    <select id="selectHourlyTokenByYearAndUser" resultType="cn.iocoder.yudao.module.ai.core.chat.model.entity.TokenStatistics">
+        SELECT
+            STR_TO_DATE(DATE_FORMAT(create_time, '%Y-%m-%d %H:00'), '%Y-%m-%d %H:%i') AS date,
+            SUM(total_tokens) AS data
+        FROM ai_chat_token
+        WHERE creator = #{creator}
+          AND create_time >= CONCAT(#{year}, '-01-01')
+          AND create_time &lt; CONCAT(#{year} + 1, '-01-01')
+        GROUP BY date
+        ORDER BY date;
+    </select>
+
+    <select id="selectDailyTokenByYearAndUser" resultType="cn.iocoder.yudao.module.ai.core.chat.model.entity.TokenStatistics">
+        SELECT
+            STR_TO_DATE(DATE_FORMAT(create_time, '%Y-%m-%d'), '%Y-%m-%d') AS date,
+            SUM(total_tokens) AS data
+        FROM ai_chat_token
+        WHERE creator = #{creator}
+          AND create_time >= CONCAT(#{year}, '-01-01')
+          AND create_time &lt; CONCAT(#{year} + 1, '-01-01')
+        GROUP BY STR_TO_DATE(DATE_FORMAT(create_time, '%Y-%m-%d'), '%Y-%m-%d')
+        ORDER BY date
+    </select>
+
+</mapper>

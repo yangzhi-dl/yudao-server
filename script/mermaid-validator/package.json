@@ -1,0 +1,14 @@
+{
+  "name": "mermaid-validator",
+  "version": "1.0.0",
+  "description": "Mermaid 图表语法校验服务，基于 mermaid.js 原生解析器",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "mermaid": "11.16.0",
+    "jsdom": "^25.0.0"
+  }
+}

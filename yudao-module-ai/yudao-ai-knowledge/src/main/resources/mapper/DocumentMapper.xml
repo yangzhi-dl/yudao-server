@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.iocoder.yudao.module.ai.knowledge.document.dal.mysql.DocumentMapper">
+
+    <resultMap id="WikiDocumentMap" type="cn.iocoder.yudao.module.ai.knowledge.document.dal.dataobject.Document">
+        <id property="id" column="id" />
+        <result property="title" column="title" />
+        <result property="cover" column="cover" />
+        <result property="type" column="type" />
+        <result property="summary" column="summary" />
+        <result property="categoryId" column="category_id" />
+        <result property="tagIds" column="tag_ids"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler" />
+        <result property="weight" column="weight" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+        <result property="deleted" column="deleted" />
+        <result property="readNum" column="read_num" />
+        <result property="fileId" column="file_id" />
+        <result property="tenantId" column="tenant_id" />
+    </resultMap>
+
+    <update id="updateDocument">
+        update ai_document
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="cover != null">cover = #{cover},</if>
+            <if test="summary != null">summary = #{summary},</if>
+            <if test="tagIds != null">tag_ids = #{tagIds, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="weight != null">weight = #{weight},</if>
+            <if test="fileId != null">file_id = #{fileId},</if>
+            <if test="readNum != null">read_num = #{readNum},</if>
+            <if test="type != null">`type` = #{type},</if>
+            <if test="deleted != null">deleted = #{deleted},</if>
+            <if test="updater != null">updater = #{updater},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        <where>
+            <if test="creator != null">
+                and creator = #{creator}
+            </if>
+            and id = #{id}
+        </where>
+    </update>
+
+    <!-- ========== 批量更新 ========== -->
+
+    <update id="updateTypeByIds">
+        update ai_document
+        <set>
+            <if test="type != null">`type` = #{type},</if>
+            <if test="updater != null">updater = #{updater},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="updateDocumentDeleted">
+        update ai_document
+        <set>
+            <if test="deleted != null">deleted = #{deleted},</if>
+            <if test="deleted != null and deleted == 1">`type` = 1,</if>
+            <if test="updater != null">updater = #{updater},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <!-- ========== 复杂查询 ========== -->
+
+    <select id="selectNextDocumentFilter" resultMap="WikiDocumentMap">
+        SELECT * FROM ai_document WHERE id > #{documentId}
+        <if test="permissionIds != null and permissionIds.size() > 0">
+            AND id IN
+            <foreach collection="permissionIds" item="permissionId" separator="," open="(" close=")">
+                #{permissionId}
+            </foreach>
+        </if> ORDER BY id LIMIT 1;
+    </select>
+
+    <select id="selectDocumentByIds" resultMap="WikiDocumentMap">
+        SELECT * FROM ai_document
+        WHERE deleted = 0
+        <if test="documentIds != null and documentIds.size() > 0">
+            AND id IN
+            <foreach collection="documentIds" item="documentId" separator="," open="(" close=")">
+                #{documentId}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="selectDocumentById" resultMap="WikiDocumentMap">
+        SELECT * FROM ai_document
+        WHERE id = #{documentId}
+          AND deleted = 0
+    </select>
+
+    <select id="selectPreDocumentFilter" resultMap="WikiDocumentMap">
+        SELECT * FROM ai_document WHERE id &lt; #{documentId}
+        <if test="permissionIds != null and permissionIds.size() > 0">
+            AND id IN
+            <foreach collection="permissionIds" item="permissionId" separator="," open="(" close=")">
+                #{permissionId}
+            </foreach>
+        </if> ORDER BY id DESC LIMIT 1;
+    </select>
+
+</mapper>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.iocoder.yudao.module.analytics.dal.mysql.ability.AnalyticsAbilityMapper">
+
+    <!-- 统计指定表的记录总数（忽略逻辑删除） -->
+    <select id="selectCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM ${tableName}
+        WHERE deleted = 0
+    </select>
+
+    <!-- 统计 token 使用总量 -->
+    <select id="selectTokenTotal" resultType="java.lang.Long">
+        SELECT IFNULL(SUM(total_tokens), 0)
+        FROM ai_chat_token
+        WHERE deleted = 0
+    </select>
+
+    <!-- 按指定枚举列统计数量分布 -->
+    <select id="selectCountGroupByColumn" resultType="java.util.Map">
+        SELECT ${column} AS `key`, COUNT(*) AS count
+        FROM ${tableName}
+        WHERE deleted = 0
+        GROUP BY ${column}
+    </select>
+
+</mapper>

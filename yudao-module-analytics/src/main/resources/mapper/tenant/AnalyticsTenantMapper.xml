@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.iocoder.yudao.module.analytics.dal.mysql.tenant.AnalyticsTenantMapper">
+
+    <select id="selectCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM system_tenant WHERE deleted = 0
+    </select>
+
+    <select id="selectCountByStatus" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM system_tenant WHERE deleted = 0 AND status = #{status}
+    </select>
+
+    <!-- 30 天内到期的租户数 -->
+    <select id="selectExpiringSoonCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM system_tenant
+        WHERE deleted = 0
+          AND expire_time IS NOT NULL
+          AND expire_time BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 30 DAY)
+    </select>
+
+    <!-- 租户状态分布：0 启用、1 禁用 -->
+    <select id="selectCountGroupByStatus" resultType="java.util.Map">
+        SELECT status AS `key`, COUNT(*) AS cnt FROM system_tenant WHERE deleted = 0 GROUP BY status
+    </select>
+
+    <!-- 租户套餐分布 -->
+    <select id="selectCountGroupByPackage" resultType="java.util.Map">
+        SELECT COALESCE(p.name, '未分配') AS name, COUNT(t.id) AS cnt
+        FROM system_tenant t
+                 LEFT JOIN system_tenant_package p ON t.package_id = p.id AND p.deleted = 0
+        WHERE t.deleted = 0
+        GROUP BY t.package_id, p.name
+    </select>
+
+    <!-- 租户每日增长趋势 -->
+    <select id="selectDailyTrend" resultType="java.util.Map">
+        SELECT DATE_FORMAT(create_time, '%Y-%m-%d') AS `date`, COUNT(*) AS cnt
+        FROM system_tenant
+        WHERE deleted = 0 AND create_time &gt;= #{beginTime}
+        GROUP BY DATE_FORMAT(create_time, '%Y-%m-%d')
+        ORDER BY `date`
+    </select>
+
+    <!-- 即将到期租户列表 -->
+    <select id="selectExpiringTenants" resultType="java.util.Map">
+        SELECT t.id AS tenantId, t.name AS tenantName, t.contact_name AS contactName, t.expire_time AS expireTime
+        FROM system_tenant t
+        WHERE t.deleted = 0
+          AND t.expire_time IS NOT NULL
+          AND t.expire_time BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 30 DAY)
+        ORDER BY t.expire_time
+    </select>
+
+</mapper>

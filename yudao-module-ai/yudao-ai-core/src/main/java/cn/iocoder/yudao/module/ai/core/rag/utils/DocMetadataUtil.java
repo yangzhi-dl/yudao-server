@@ -1,0 +1,68 @@
+package cn.iocoder.yudao.module.ai.core.rag.utils;
+
+import cn.iocoder.yudao.module.ai.core.chat.enums.EmbeddingTypeEnum;
+import cn.iocoder.yudao.module.ai.core.chat.model.vo.DocMetadataVO;
+import cn.iocoder.yudao.module.ai.core.rag.factory.EmbeddingTypeFactory;
+import cn.iocoder.yudao.module.ai.core.rag.factory.EmbeddingTypeService;
+import cn.iocoder.yudao.module.ai.core.rag.model.entity.DocMetadata;
+import cn.iocoder.yudao.module.ai.core.rag.model.entity.Metadata;
+import cn.iocoder.yudao.module.ai.core.rag.model.entity.MetadataScore;
+import com.alibaba.fastjson.JSONArray;
+import org.springframework.stereotype.Component;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Component
+public class DocMetadataUtil {
+
+    private final EmbeddingTypeFactory embeddingTypeFactory;
+
+    public DocMetadataUtil(EmbeddingTypeFactory embeddingTypeFactory) {
+        this.embeddingTypeFactory = embeddingTypeFactory;
+    }
+
+    public List<DocMetadataVO> getDocMetadata (String metadata) {
+
+        if (Objects.nonNull(metadata)) {
+            // 解析 metadata 为 DocMetadata 列表
+            List<DocMetadata> docsMetadata = JSONArray.parseArray(metadata, DocMetadata.class);
+
+            // 创建一个映射，用于存储 documentId -> DocMetadataVo
+            Map<Long, DocMetadataVO> docMetadataVoMap = new HashMap<>();
+
+            // 遍历 docsMetadata，构建 DocMetadataVo 和 MetadataScore
+            for (DocMetadata doc : docsMetadata) {
+                Metadata docMetadata = doc.getMetadata();
+                Long documentId = docMetadata.getDocumentId();
+
+                // 如果 docMetadataVoMap 中不存在该 documentId，则初始化 DocMetadataVo
+                docMetadataVoMap.computeIfAbsent(documentId, k -> {
+                    EmbeddingTypeService service = embeddingTypeFactory.getService(EmbeddingTypeEnum.DOCUMENT);
+                    docMetadata.setName(service.getName(documentId));
+                    return DocMetadataVO.builder()
+                            .metadata(docMetadata)
+                            .score(new ArrayList<>()) // 初始化为空列表
+                            .build();
+                });
+
+                // 构造 MetadataScore 并添加到对应的 DocMetadataVo 的 score 列表中
+                MetadataScore score = MetadataScore.builder()
+                        .id(doc.getId())
+                        .text(doc.getText())
+                        .score(doc.getScore())
+                        .index(doc.getMetadata().getChunkIndex())
+                        .build();
+                docMetadataVoMap.get(documentId).getScore().add(score);
+            }
+
+            // 将 docMetadataVoMap 转换为列表并去重（利用 Set 去重）
+
+            return docMetadataVoMap.values().stream()
+                    .peek(vo -> vo.setScore(new ArrayList<>(new HashSet<>(vo.getScore())))) // 去重 score 列表
+                    .collect(Collectors.toList());
+        }
+        return null;
+    }
+
+}

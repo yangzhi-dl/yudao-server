@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.iocoder.yudao.module.ai.knowledge.common.mapper.KnowledgeMapper">
+
+    <select id="selectDocumentId">
+        SELECT DISTINCT c.document_id
+        FROM ai_wiki w
+                 INNER JOIN ai_wiki_catalog c
+                            ON w.id = c.wiki_id
+        WHERE w.deleted = 0
+          AND c.deleted = 0
+          AND c.document_id IS NOT NULL;
+    </select>
+
+    <select id="selectWikiCatalogIdSetByDocumentIds">
+        select document_id, wiki_id
+        from ai_wiki_catalog
+        where document_id in
+        <foreach collection="documentIds" item="documentId" open="(" close=")" separator=",">
+            #{documentId}
+        </foreach>
+        and deleted = 0
+    </select>
+
+    <select id="selectWikiCatalogIdSetByDocumentId">
+        select document_id, wiki_id
+        from ai_wiki_catalog
+        where document_id = #{documentId} and deleted = 0
+    </select>
+
+    <update id="deleteWikiCatalogsByDocumentIds">
+        update ai_wiki_catalog set deleted = 1 where document_id in
+        <foreach collection="documentIds" item="documentId" separator="," open="(" close=")">
+            #{documentId}
+        </foreach>
+    </update>
+
+    <select id="selectWikiEmbedding">
+        SELECT DISTINCT
+            w.*
+        FROM
+            ai_wiki w
+                INNER JOIN
+            ai_wiki_catalog c ON w.id = c.wiki_id
+        WHERE
+            w.deleted = 0
+          AND c.deleted = 0
+          AND c.is_embedding = 1;
+    </select>
+
+    <select id="selectHotWiki">
+        SELECT
+        w.id AS id,
+        w.title AS title,
+        w.cover AS cover,
+        SUM(d.read_num) AS view_count
+        FROM
+        ai_wiki w
+        INNER JOIN (
+            SELECT DISTINCT
+            c.wiki_id,
+            c.document_id
+            FROM
+            ai_wiki_catalog c
+            WHERE
+            c.deleted = 0
+            AND c.document_id IS NOT NULL
+        ) c ON w.id = c.wiki_id
+        INNER JOIN ai_document d ON c.document_id = d.id
+        WHERE w.deleted = 0
+        AND d.deleted = 0
+        GROUP BY
+        w.id, w.title
+        ORDER BY
+        view_count DESC
+        <if test="limit != null and limit > 0">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+</mapper>

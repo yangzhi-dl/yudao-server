@@ -1,0 +1,22 @@
+package cn.iocoder.yudao.module.ai.core.workflow.model.dto;
+
+import lombok.Data;
+
+/**
+ * 创建工作流 DTO
+ */
+@Data
+public class CreateWorkflowDTO {
+
+    /** 工作流名称 */
+    private String name;
+
+    /** 工作流描述 */
+    private String description;
+
+    /** 图标文件ID */
+    private Long icon;
+
+    /** 画布数据（JSON：nodes + edges） */
+    private Object graph;
+}

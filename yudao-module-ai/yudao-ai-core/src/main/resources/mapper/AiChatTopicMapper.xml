@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.iocoder.yudao.module.ai.core.chat.dal.mysql.AiChatTopicMapper">
+
+    <select id="pageQuery" resultType="cn.iocoder.yudao.module.ai.core.chat.model.vo.ChatTopicVO">
+        select * from ai_chat_topic
+        <where>
+            <if test="entity.id != null">
+                id = #{entity.id}
+            </if>
+            <if test="entity.title != null and entity.title.trim() != ''">
+                and title like concat('%', #{entity.title}, '%')
+            </if>
+            <if test="entity.deleted != null">
+                and deleted = #{entity.deleted}
+            </if>
+            <if test="entity.isArchived != null">
+                and is_archived = #{entity.isArchived}
+            </if>
+            <if test="entity.creator != null">
+                and creator = #{entity.creator}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+</mapper>

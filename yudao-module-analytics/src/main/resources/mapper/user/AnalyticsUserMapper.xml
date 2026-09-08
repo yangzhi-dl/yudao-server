@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.iocoder.yudao.module.analytics.dal.mysql.user.AnalyticsUserMapper">
+
+    <select id="selectUserCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM system_users WHERE deleted = 0
+    </select>
+
+    <!-- 用户状态：0 启用、1 禁用 -->
+    <select id="selectUserCountByStatus" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM system_users WHERE deleted = 0 AND status = #{status}
+    </select>
+
+    <!-- 在线用户数：访问令牌未过期 -->
+    <select id="selectOnlineUserCount" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT user_id)
+        FROM system_oauth2_access_token
+        WHERE deleted = 0 AND expires_time &gt; NOW()
+    </select>
+
+    <!-- 用户每日增长趋势 -->
+    <select id="selectUserDailyTrend" resultType="java.util.Map">
+        SELECT DATE_FORMAT(create_time, '%Y-%m-%d') AS `date`, COUNT(*) AS cnt
+        FROM system_users
+        WHERE deleted = 0 AND create_time &gt;= #{beginTime}
+        GROUP BY DATE_FORMAT(create_time, '%Y-%m-%d')
+        ORDER BY `date`
+    </select>
+
+    <!-- 每日登录次数与成功次数（仅登录类日志：100/101/103/104） -->
+    <select id="selectLoginDailyTrend" resultType="java.util.Map">
+        SELECT DATE_FORMAT(create_time, '%Y-%m-%d') AS `date`,
+               COUNT(*) AS loginCnt,
+               IFNULL(SUM(result = 0), 0) AS successCnt
+        FROM system_login_log
+        WHERE deleted = 0
+          AND log_type IN (100, 101, 103, 104)
+          AND create_time &gt;= #{beginTime}
+        GROUP BY DATE_FORMAT(create_time, '%Y-%m-%d')
+        ORDER BY `date`
+    </select>
+
+    <!-- 登录类型分布 -->
+    <select id="selectLoginCountGroupByType" resultType="java.util.Map">
+        SELECT log_type AS `key`, COUNT(*) AS cnt
+        FROM system_login_log
+        WHERE deleted = 0
+        GROUP BY log_type
+    </select>
+
+    <!-- 登录结果分布 -->
+    <select id="selectLoginCountGroupByResult" resultType="java.util.Map">
+        SELECT result AS `key`, COUNT(*) AS cnt
+        FROM system_login_log
+        WHERE deleted = 0
+        GROUP BY result
+    </select>
+
+</mapper>

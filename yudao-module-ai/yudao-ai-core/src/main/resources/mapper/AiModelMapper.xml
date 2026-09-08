@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.iocoder.yudao.module.ai.core.chat.dal.mysql.AiModelMapper">
+
+    <select id="selectChatModelApiById" resultType="cn.iocoder.yudao.module.ai.core.chat.model.entity.ChatApi">
+        select * from ai_chat_models where id = #{id} limit 1
+    </select>
+
+    <select id="pageQuery" resultType="cn.iocoder.yudao.module.ai.core.chat.model.vo.ModelVO">
+        select * from ai_chat_models
+        <where>
+            and deleted = 0
+            <if test="dto.name != null and dto.name != ''">
+                and (`name` like concat('%', #{dto.name}, '%') or `rename` like concat('%', #{dto.name}, '%'))
+            </if>
+            <if test="dto.type != null">
+                and `type` = #{dto.type}
+            </if>
+            <if test="dto.modelType != null">
+                and model_type = #{dto.modelType}
+            </if>
+            <if test="dto.isOnline != null">
+                and is_online = #{dto.isOnline}
+            </if>
+            <if test="dto.filterIds != null and dto.filterIds.size() > 0">
+                and id IN
+                <foreach collection="dto.filterIds" item="id" separator="," open="(" close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+</mapper>

@@ -1,0 +1,61 @@
+######################################################################
+# Build Tools
+
+.gradle
+/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+.flattened-pom.xml
+
+######################################################################
+# IDE
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+nbproject/private/
+build/*
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+######################################################################
+# Others
+*.log
+*.xml.versionsBackup
+*.swp
+
+!*/build/*.java
+!*/build/*.html
+!*/build/*.xml
+
+### JRebel ###
+rebel.xml
+
+### 本地 / 各环境部署配置(application-personal.yml、application-prod.yaml 等)
+### 内含数据库、Redis、微信/腾讯等第三方真实密钥与内网地址,禁止提交
+application-*.y*ml
+
+### 本机 AI 辅助工具本地数据 ###
+.workbuddy-ai/
+
+/yudao-ui-app/unpackage/
+.DS_Store
+**/.DS_Store
+/sessions_mount_dir/

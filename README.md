@@ -1,4 +1,4 @@
-# Dzint Nexus 平台（dzint-agent-server）
+# yandel Nexus 平台（yandel-agent-server）
 
 一套面向制造业的 **多租户 SaaS 智能体平台**：以 AI Agent 能力为核心引擎，向下打通 MES（制造执行）、WMS（仓储管理）、BPM（流程审批）、CRM/ERP 等业务域，向上通过 Hub 前台和运营分析（Analytics）实现商业化交付。
 
@@ -6,8 +6,8 @@
 
 | 事实 | 说明 |
 |------|------|
-| 服务名 | `dzint-agent-server`（配置于 `application.yaml`） |
-| 产品线 | Nexus（生产库 `dzint-nexus-pro`） |
+| 服务名 | `yandel-agent-server`（配置于 `application.yaml`） |
+| 产品线 | Nexus（生产库 `yandel-nexus-pro`） |
 | 运行形态 | 单体部署、模块化组装：`yudao-server` 按需聚合各业务模块 |
 | 语言 / 运行时 | Java 25 |
 | 框架 | Spring Boot 4.1（Jakarta 生态） |
@@ -85,7 +85,7 @@
 
 ### 1. 初始化数据库
 
-以 MySQL 为例，执行 `sql/mysql/dzint-nexus-pro.sql` 完成建库与演示数据初始化。
+以 MySQL 为例，执行 `sql/mysql/yandel-nexus-pro.sql` 完成建库与演示数据初始化。
 
 > 注意：SQL 脚本中的云存储 / 短信渠道等配置为**演示占位符**（`your-xxx-key`），真实密钥请在系统后台自行配置，勿直接提交真实凭据。
 
